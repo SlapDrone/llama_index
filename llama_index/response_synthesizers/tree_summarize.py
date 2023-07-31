@@ -60,24 +60,27 @@ class TreeSummarize(BaseSynthesizer):
         # give final response if there is only one chunk
         if len(text_chunks) == 1:
             response: RESPONSE_TEXT_TYPE
+            summary_prompt = summary_template.format(context_str=text_chunks[0])
             if self._streaming:
-                response = self._service_context.llm_predictor.stream(
-                    summary_template,
-                    context_str=text_chunks[0],
+                response = self._service_context.llm.astream_chat(
+                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
                 )
             else:
-                response = await self._service_context.llm_predictor.apredict(
-                    summary_template,
-                    context_str=text_chunks[0],
+                response = await self._service_context.llm.achat(
+                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
                 )
             return response
 
         else:
             # summarize each chunk
             tasks = [
-                self._service_context.llm_predictor.apredict(
-                    summary_template,
-                    context_str=text_chunk,
+                self._service_context.llm.achat(
+                    [
+                        ChatMessage(
+                            role=MessageRole.USER,
+                            content=summary_template.format(context_str=text_chunk),
+                        )
+                    ]
                 )
                 for text_chunk in text_chunks
             ]
@@ -112,15 +115,14 @@ class TreeSummarize(BaseSynthesizer):
         # give final response if there is only one chunk
         if len(text_chunks) == 1:
             response: RESPONSE_TEXT_TYPE
+            summary_prompt = summary_template.format(context_str=text_chunks[0])
             if self._streaming:
-                response = self._service_context.llm_predictor.stream(
-                    summary_template,
-                    context_str=text_chunks[0],
+                response = self._service_context.llm.stream_chat(
+                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
                 )
             else:
-                response = self._service_context.llm_predictor.predict(
-                    summary_template,
-                    context_str=text_chunks[0],
+                response = self._service_context.llm.chat(
+                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
                 )
             return response
 
@@ -128,9 +130,13 @@ class TreeSummarize(BaseSynthesizer):
             # summarize each chunk
             if self._use_async:
                 tasks = [
-                    self._service_context.llm_predictor.apredict(
-                        summary_template,
-                        context_str=text_chunk,
+                    self._service_context.llm.achat(
+                        [
+                            ChatMessage(
+                                role=MessageRole.USER,
+                                content=summary_template.format(context_str=text_chunk),
+                            )
+                        ]
                     )
                     for text_chunk in text_chunks
                 ]
@@ -138,9 +144,13 @@ class TreeSummarize(BaseSynthesizer):
                 summaries: List[str] = run_async_tasks(tasks)
             else:
                 summaries = [
-                    self._service_context.llm_predictor.predict(
-                        summary_template,
-                        context_str=text_chunk,
+                    self._service_context.llm.chat(
+                        [
+                            ChatMessage(
+                                role=MessageRole.USER,
+                                content=summary_template.format(context_str=text_chunk),
+                            )
+                        ]
                     )
                     for text_chunk in text_chunks
                 ]
