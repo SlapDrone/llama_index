@@ -1,9 +1,7 @@
 from typing import Any, Generator, Optional, Sequence, cast
 
 from llama_index.indices.service_context import ServiceContext
-from llama_index.prompts.default_prompts import (
-    DEFAULT_TEXT_QA_PROMPT,
-)
+from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompts import QuestionAnswerPrompt
 from llama_index.response_synthesizers.base import BaseSynthesizer
 from llama_index.types import RESPONSE_TEXT_TYPE
@@ -33,15 +31,14 @@ class SimpleSummarize(BaseSynthesizer):
         node_text = "\n".join(truncated_chunks)
 
         response: RESPONSE_TEXT_TYPE
+        prompt = text_qa_template.format(context_str=node_text)
         if not self._streaming:
-            response = await self._service_context.llm_predictor.apredict(
-                text_qa_template,
-                context_str=node_text,
+            response = await self._service_context.llm.achat(
+                [ChatMessage(role=MessageRole.USER, content=prompt)]
             )
         else:
-            response = self._service_context.llm_predictor.stream(
-                text_qa_template,
-                context_str=node_text,
+            response = self._service_context.llm.astream_chat(
+                [ChatMessage(role=MessageRole.USER, content=prompt)]
             )
 
         if isinstance(response, str):
@@ -65,15 +62,15 @@ class SimpleSummarize(BaseSynthesizer):
         node_text = "\n".join(truncated_chunks)
 
         response: RESPONSE_TEXT_TYPE
+        prompt = text_qa_template.format(context_str=node_text)
+
         if not self._streaming:
-            response = self._service_context.llm_predictor.predict(
-                text_qa_template,
-                context_str=node_text,
+            response = self._service_context.llm.chat(
+                [ChatMessage(role=MessageRole.USER, content=prompt)]
             )
         else:
-            response = self._service_context.llm_predictor.stream(
-                text_qa_template,
-                context_str=node_text,
+            response = self._service_context.llm.stream_chat(
+                [ChatMessage(role=MessageRole.USER, content=prompt)]
             )
 
         if isinstance(response, str):
