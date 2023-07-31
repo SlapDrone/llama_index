@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Sequence
 
 from llama_index.async_utils import run_async_tasks
 from llama_index.indices.service_context import ServiceContext
-from llama_index.llms.base import ChatMessage
+from llama_index.llms.base import ChatMessage, MessageRole
 from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompts import QuestionAnswerPrompt
 from llama_index.response_synthesizers.base import BaseSynthesizer

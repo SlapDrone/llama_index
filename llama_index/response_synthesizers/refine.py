@@ -3,7 +3,7 @@ from typing import Any, Generator, Optional, Sequence, cast
 
 from llama_index.indices.service_context import ServiceContext
 from llama_index.indices.utils import truncate_text
-from llama_index.llms.base import ChatMessage
+from llama_index.llms.base import ChatMessage, MessageRole
 from llama_index.prompts.default_prompt_selectors import DEFAULT_REFINE_PROMPT_SEL
 from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
