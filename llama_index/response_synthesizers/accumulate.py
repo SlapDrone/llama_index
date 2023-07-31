@@ -85,7 +85,8 @@ class Accumulate(BaseSynthesizer):
 
         if self._use_async:
             outputs = run_async_tasks(outputs)
-
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        responses = [convert_llm_output_to_legacy(response) for response in outputs]
         return self._format_response(outputs, separator)
 
     def _give_responses(
@@ -115,6 +116,4 @@ class Accumulate(BaseSynthesizer):
             )
             for cur_text_chunk in text_chunks
         ]
-        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
-        responses = [convert_llm_output_to_legacy(response) for response in responses]
         return responses
