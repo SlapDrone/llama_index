@@ -170,10 +170,11 @@ class BaseSynthesizer(ABC):
 
 # -- adapter code for replacing LLMPredictor calls with LLM
 
+import types
 
 from llama_index.types import TokenAsyncGen, TokenGen
 
-LLM_RESPONSES = Union[ChatResponse, ChatResponseGen, ChatResponseAsyncGen]
+LLM_RESPONSES = Union[str, ChatResponse, ChatResponseGen, ChatResponseAsyncGen]
 
 
 def convert_chat_response(output: ChatResponse) -> str:
@@ -199,11 +200,14 @@ def convert_chat_response_async_gen(output: ChatResponseAsyncGen) -> TokenAsyncG
 def convert_llm_output_to_legacy(
     output: LLM_RESPONSES,
 ) -> Union[str, TokenGen, TokenAsyncGen]:
-    if isinstance(output, ChatResponse):
+    print(output, type(output))
+    if isinstance(output, str):
+        return output
+    elif isinstance(output, ChatResponse):
         return convert_chat_response(output)
-    elif isinstance(output, ChatResponseGen):
+    elif isinstance(output, types.GeneratorType):
         return convert_chat_response_gen(output)
-    elif isinstance(output, ChatResponseAsyncGen):
+    elif isinstance(output, types.AsyncGeneratorType):
         return convert_chat_response_async_gen(output)
     else:
         raise ValueError(f"Output {output} not understood. Expected: {LLM_RESPONSES}")
