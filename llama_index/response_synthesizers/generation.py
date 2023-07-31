@@ -26,16 +26,15 @@ class Generation(BaseSynthesizer):
         # NOTE: ignore text chunks and previous response
         del text_chunks
 
+        input_prompt = self._input_prompt.format(query_str=query_str)
         if not self._streaming:
-            response = await self._service_context.llm_predictor.apredict(
-                self._input_prompt,
-                query_str=query_str,
+            response = await self._service_context.llm_predictor.achat(
+                [ChatMessage(role=MessageRole.USER, content=input_prompt)]
             )
             return response
         else:
-            stream_response = self._service_context.llm_predictor.stream(
-                self._input_prompt,
-                query_str=query_str,
+            stream_response = self._service_context.llm.astream_chat(
+                [ChatMessage(role=MessageRole.USER, content=input_prompt)]
             )
             return stream_response
 
@@ -48,15 +47,14 @@ class Generation(BaseSynthesizer):
         # NOTE: ignore text chunks and previous response
         del text_chunks
 
+        input_prompt = self._input_prompt.format(query_str=query_str)
         if not self._streaming:
-            response = self._service_context.llm_predictor.predict(
-                self._input_prompt,
-                query_str=query_str,
+            response = self._service_context.llm.chat(
+                [ChatMessage(role=MessageRole.USER, content=input_prompt)]
             )
             return response
         else:
-            stream_response = self._service_context.llm_predictor.stream(
-                self._input_prompt,
-                query_str=query_str,
+            stream_response = self._service_context.llm.stream_chat(
+                [ChatMessage(role=MessageRole.USER, content=input_prompt)]
             )
             return stream_response
