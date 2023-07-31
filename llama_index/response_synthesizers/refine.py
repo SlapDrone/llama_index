@@ -8,7 +8,10 @@ from llama_index.prompts.default_prompt_selectors import DEFAULT_REFINE_PROMPT_S
 from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
 from llama_index.response.utils import get_response_text
-from llama_index.response_synthesizers.base import BaseSynthesizer
+from llama_index.response_synthesizers.base import (
+    BaseSynthesizer,
+    convert_llm_output_to_legacy,
+)
 from llama_index.types import RESPONSE_TEXT_TYPE
 
 logger = logging.getLogger(__name__)
@@ -90,6 +93,8 @@ class Refine(BaseSynthesizer):
                     query_str,
                     cur_text_chunk,
                 )
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
             response = response or "Empty Response"
         else:
@@ -134,6 +139,8 @@ class Refine(BaseSynthesizer):
                 query_str=query_str, existing_answer=response
             )
 
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         return response
 
     async def aget_response(
@@ -159,6 +166,8 @@ class Refine(BaseSynthesizer):
                     prev_response_obj, query_str, text_chunk
                 )
             prev_response_obj = response
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
             response = response or "Empty Response"
         else:
@@ -199,7 +208,8 @@ class Refine(BaseSynthesizer):
             refine_template = self._refine_template.partial_format(
                 query_str=query_str, existing_answer=response
             )
-
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         return response
 
     async def _agive_response_single(
@@ -233,6 +243,8 @@ class Refine(BaseSynthesizer):
                     query_str,
                     cur_text_chunk,
                 )
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
             response = response or "Empty Response"
         else:

@@ -14,8 +14,9 @@ from typing import Any, Dict, Generator, List, Optional, Sequence, Union
 from llama_index.callbacks.schema import CBEventType, EventPayload
 from llama_index.indices.query.schema import QueryBundle
 from llama_index.indices.service_context import ServiceContext
+from llama_index.llms.base import ChatResponse, ChatResponseAsyncGen, ChatResponseGen
 from llama_index.response.schema import RESPONSE_TYPE, Response, StreamingResponse
-from llama_index.schema import BaseNode, NodeWithScore, MetadataMode
+from llama_index.schema import BaseNode, MetadataMode, NodeWithScore
 from llama_index.types import RESPONSE_TEXT_TYPE
 
 logger = logging.getLogger(__name__)
@@ -165,3 +166,44 @@ class BaseSynthesizer(ABC):
             event.on_end(payload={EventPayload.RESPONSE: response})
 
         return response
+
+
+# -- adapter code for replacing LLMPredictor calls with LLM
+
+
+from llama_index.types import TokenAsyncGen, TokenGen
+
+LLM_RESPONSES = Union[ChatResponse, ChatResponseGen, ChatResponseAsyncGen]
+
+
+def convert_chat_response(output: ChatResponse) -> str:
+    return output.message.content
+
+
+def convert_chat_response_gen(output: ChatResponseGen) -> TokenGen:
+    def generator(output):
+        for response in output:
+            yield response.message.content
+
+    return generator(output)
+
+
+def convert_chat_response_async_gen(output: ChatResponseAsyncGen) -> TokenAsyncGen:
+    async def async_generator(output):
+        async for response in output:
+            yield response.message.content
+
+    return async_generator(output)
+
+
+def convert_llm_output_to_legacy(
+    output: LLM_RESPONSES,
+) -> Union[str, TokenGen, TokenAsyncGen]:
+    if isinstance(output, ChatResponse):
+        return convert_chat_response(output)
+    elif isinstance(output, ChatResponseGen):
+        return convert_chat_response_gen(output)
+    elif isinstance(output, ChatResponseAsyncGen):
+        return convert_chat_response_async_gen(output)
+    else:
+        raise ValueError(f"Output {output} not understood. Expected: {LLM_RESPONSES}")
