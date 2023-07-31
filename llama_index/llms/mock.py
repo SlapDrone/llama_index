@@ -19,7 +19,7 @@ class MockLLM(CustomLLM):
         response_text = (
             self._generate_text(self.max_tokens) if self.max_tokens else prompt
         )
-
+        print(response_text, type(response_text))
         return CompletionResponse(
             text=response_text,
         )

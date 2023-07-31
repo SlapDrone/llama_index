@@ -172,42 +172,52 @@ class BaseSynthesizer(ABC):
 
 import types
 
+from llama_index.llms.base import (
+    CompletionResponse,
+    CompletionResponseAsyncGen,
+    CompletionResponseGen,
+)
 from llama_index.types import TokenAsyncGen, TokenGen
 
-LLM_RESPONSES = Union[str, ChatResponse, ChatResponseGen, ChatResponseAsyncGen]
+LLM_RESPONSES = Union[
+    str, CompletionResponse, CompletionResponseGen, CompletionResponseAsyncGen
+]
 
 
-def convert_chat_response(output: ChatResponse) -> str:
-    return output.message.content
+def convert_completion_response(output: CompletionResponse) -> str:
+    return output.text
 
 
-def convert_chat_response_gen(output: ChatResponseGen) -> TokenGen:
+def convert_completion_response_gen(output: CompletionResponseGen) -> TokenGen:
     def generator(output):
         for response in output:
-            yield response.message.content
+            yield convert_completion_response(response)
 
     return generator(output)
 
 
-def convert_chat_response_async_gen(output: ChatResponseAsyncGen) -> TokenAsyncGen:
+def convert_completion_response_async_gen(
+    output: CompletionResponseAsyncGen,
+) -> TokenAsyncGen:
     async def async_generator(output):
         async for response in output:
-            yield response.message.content
+            yield convert_completion_response(response)
 
     return async_generator(output)
 
 
 def convert_llm_output_to_legacy(
-    output: LLM_RESPONSES,
-) -> Union[str, TokenGen, TokenAsyncGen]:
-    print(output, type(output))
-    if isinstance(output, str):
+    output: Optional[LLM_RESPONSES],
+) -> Any:  # Union[str, TokenGen, TokenAsyncGen]:
+    if output is None:
         return output
-    elif isinstance(output, ChatResponse):
-        return convert_chat_response(output)
+    elif isinstance(output, str):
+        return output
+    elif isinstance(output, CompletionResponse):
+        return convert_completion_response(output)
     elif isinstance(output, types.GeneratorType):
-        return convert_chat_response_gen(output)
+        return convert_completion_response_gen(output)
     elif isinstance(output, types.AsyncGeneratorType):
-        return convert_chat_response_async_gen(output)
+        return convert_completion_response_async_gen(output)
     else:
         raise ValueError(f"Output {output} not understood. Expected: {LLM_RESPONSES}")
