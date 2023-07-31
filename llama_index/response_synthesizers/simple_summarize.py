@@ -44,7 +44,8 @@ class SimpleSummarize(BaseSynthesizer):
             response = self._service_context.llm.astream_chat(
                 [ChatMessage(role=MessageRole.USER, content=prompt)]
             )
-
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
             response = response or "Empty Response"
         else:
@@ -76,7 +77,8 @@ class SimpleSummarize(BaseSynthesizer):
             response = self._service_context.llm.stream_chat(
                 [ChatMessage(role=MessageRole.USER, content=prompt)]
             )
-
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
             response = response or "Empty Response"
         else:

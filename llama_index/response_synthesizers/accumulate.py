@@ -104,7 +104,7 @@ class Accumulate(BaseSynthesizer):
             else self._service_context.llm.chat
         )
 
-        return [
+        responses = [
             _call_llm(
                 [
                     ChatMessage(
@@ -115,3 +115,6 @@ class Accumulate(BaseSynthesizer):
             )
             for cur_text_chunk in text_chunks
         ]
+        # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+        responses = [convert_llm_output_to_legacy(response) for response in responses]
+        return responses

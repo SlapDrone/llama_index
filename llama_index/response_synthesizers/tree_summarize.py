@@ -8,6 +8,7 @@ from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompt_type import PromptType
 from llama_index.prompts.prompts import QuestionAnswerPrompt, SummaryPrompt
 from llama_index.response_synthesizers.base import (
+    LLM_RESPONSES,
     BaseSynthesizer,
     convert_llm_output_to_legacy,
 )
@@ -73,6 +74,8 @@ class TreeSummarize(BaseSynthesizer):
                 response = await self._service_context.llm.achat(
                     [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
                 )
+            # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+            response = convert_llm_output_to_legacy(response)
             return response
 
         else:
@@ -89,8 +92,9 @@ class TreeSummarize(BaseSynthesizer):
                 for text_chunk in text_chunks
             ]
 
-            summaries: List[str] = await asyncio.gather(*tasks)
-
+            summaries: List[LLM_RESPONSES] = await asyncio.gather(*tasks)
+            # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+            summaries = [convert_llm_output_to_legacy(summary) for summary in summaries]
             # recursively summarize the summaries
             return await self.aget_response(
                 query_str=query_str,
@@ -128,6 +132,8 @@ class TreeSummarize(BaseSynthesizer):
                 response = self._service_context.llm.chat(
                     [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
                 )
+            # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+            response = convert_llm_output_to_legacy(response)
             return response
 
         else:
@@ -145,7 +151,7 @@ class TreeSummarize(BaseSynthesizer):
                     for text_chunk in text_chunks
                 ]
 
-                summaries: List[str] = run_async_tasks(tasks)
+                summaries: List[LLM_RESPONSES] = run_async_tasks(tasks)
             else:
                 summaries = [
                     self._service_context.llm.chat(
@@ -158,7 +164,8 @@ class TreeSummarize(BaseSynthesizer):
                     )
                     for text_chunk in text_chunks
                 ]
-
+            # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
+            summaries = [convert_llm_output_to_legacy(summary) for summary in summaries]
             # recursively summarize the summaries
             return self.get_response(
                 query_str=query_str,
