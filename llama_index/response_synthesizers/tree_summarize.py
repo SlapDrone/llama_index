@@ -7,7 +7,10 @@ from llama_index.llms.base import ChatMessage, MessageRole
 from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompt_type import PromptType
 from llama_index.prompts.prompts import QuestionAnswerPrompt, SummaryPrompt
-from llama_index.response_synthesizers.base import BaseSynthesizer
+from llama_index.response_synthesizers.base import (
+    BaseSynthesizer,
+    convert_llm_output_to_legacy,
+)
 from llama_index.types import RESPONSE_TEXT_TYPE
 
 

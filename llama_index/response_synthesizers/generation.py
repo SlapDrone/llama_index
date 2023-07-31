@@ -29,7 +29,7 @@ class Generation(BaseSynthesizer):
 
         input_prompt = self._input_prompt.format(query_str=query_str)
         if not self._streaming:
-            response = await self._service_context.llm_predictor.achat(
+            response = await self._service_context.llm.achat(
                 [ChatMessage(role=MessageRole.USER, content=input_prompt)]
             )
             return response
