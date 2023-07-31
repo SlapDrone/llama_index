@@ -1,11 +1,9 @@
 import asyncio
-from typing import Any, List, Sequence, Optional
+from typing import Any, List, Optional, Sequence
 
 from llama_index.async_utils import run_async_tasks
 from llama_index.indices.service_context import ServiceContext
-from llama_index.prompts.default_prompts import (
-    DEFAULT_TEXT_QA_PROMPT,
-)
+from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompts import QuestionAnswerPrompt
 from llama_index.response_synthesizers.base import BaseSynthesizer
 from llama_index.types import RESPONSE_TEXT_TYPE
@@ -96,16 +94,13 @@ class Accumulate(BaseSynthesizer):
             text_qa_template, [text_chunk]
         )
 
-        predictor = (
-            self._service_context.llm_predictor.apredict
+        chunk_formatted_prompt = text_qa_template.format(context_str=cur_text_chunk)
+        payload = [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
+
+        _call_llm = (
+            self._service_context.llm.achat
             if use_async
-            else self._service_context.llm_predictor.predict
+            else self._service_context.llm.chat
         )
 
-        return [
-            predictor(
-                text_qa_template,
-                context_str=cur_text_chunk,
-            )
-            for cur_text_chunk in text_chunks
-        ]
+        return [_call_llm(payload) for cur_text_chunk in text_chunks]
