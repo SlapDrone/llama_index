@@ -4,9 +4,7 @@ from typing import Any, Generator, Optional, Sequence, cast
 from llama_index.indices.service_context import ServiceContext
 from llama_index.indices.utils import truncate_text
 from llama_index.prompts.default_prompt_selectors import DEFAULT_REFINE_PROMPT_SEL
-from llama_index.prompts.default_prompts import (
-    DEFAULT_TEXT_QA_PROMPT,
-)
+from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT
 from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
 from llama_index.response.utils import get_response_text
 from llama_index.response_synthesizers.base import BaseSynthesizer
@@ -76,15 +74,14 @@ class Refine(BaseSynthesizer):
         response: Optional[RESPONSE_TEXT_TYPE] = None
         # TODO: consolidate with loop in get_response_default
         for cur_text_chunk in text_chunks:
+            chunk_formatted_prompt = text_qa_template.format(context_str=cur_text_chunk)
             if response is None and not self._streaming:
-                response = self._service_context.llm_predictor.predict(
-                    text_qa_template,
-                    context_str=cur_text_chunk,
+                response = self._service_context.llm.chat(
+                    [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
                 )
             elif response is None and self._streaming:
-                response = self._service_context.llm_predictor.stream(
-                    text_qa_template,
-                    context_str=cur_text_chunk,
+                response = self._service_context.llm.stream_chat(
+                    [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
                 )
             else:
                 response = self._refine_response_single(
@@ -123,15 +120,14 @@ class Refine(BaseSynthesizer):
         )
 
         for cur_text_chunk in text_chunks:
+            chunk_formatted_prompt = refine_template.format(context_msg=cur_text_chunk)
             if not self._streaming:
-                response = self._service_context.llm_predictor.predict(
-                    refine_template,
-                    context_msg=cur_text_chunk,
+                response = self._service_context.llm.chat(
+                    [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
                 )
             else:
-                response = self._service_context.llm_predictor.stream(
-                    refine_template,
-                    context_msg=cur_text_chunk,
+                response = self._service_context.llm.stream_chat(
+                    [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
                 )
             refine_template = self._refine_template.partial_format(
                 query_str=query_str, existing_answer=response
@@ -191,10 +187,10 @@ class Refine(BaseSynthesizer):
         )
 
         for cur_text_chunk in text_chunks:
+            chunk_formatted_prompt = refine_template.format(context_msg=cur_text_chunk)
             if not self._streaming:
-                response = await self._service_context.llm_predictor.apredict(
-                    refine_template,
-                    context_msg=cur_text_chunk,
+                response = await self._service_context.llm.achat(
+                    [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
                 )
             else:
                 raise ValueError("Streaming not supported for async")
@@ -220,10 +216,13 @@ class Refine(BaseSynthesizer):
         response: Optional[RESPONSE_TEXT_TYPE] = None
         # TODO: consolidate with loop in get_response_default
         for cur_text_chunk in text_chunks:
+
             if response is None and not self._streaming:
-                response = await self._service_context.llm_predictor.apredict(
-                    text_qa_template,
-                    context_str=cur_text_chunk,
+                chunk_formatted_prompt = text_qa_template.format(
+                    context_str=cur_text_chunk
+                )
+                response = await self._service_context.llm.achat(
+                    [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
                 )
             elif response is None and self._streaming:
                 raise ValueError("Streaming not supported for async")
