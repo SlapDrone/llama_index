@@ -95,13 +95,20 @@ class Accumulate(BaseSynthesizer):
             text_qa_template, [text_chunk]
         )
 
-        chunk_formatted_prompt = text_qa_template.format(context_str=cur_text_chunk)
-        payload = [ChatMessage(role=MessageRole.USER, content=chunk_formatted_prompt)]
-
         _call_llm = (
             self._service_context.llm.achat
             if use_async
             else self._service_context.llm.chat
         )
 
-        return [_call_llm(payload) for cur_text_chunk in text_chunks]
+        return [
+            _call_llm(
+                [
+                    ChatMessage(
+                        role=MessageRole.USER,
+                        content=text_qa_template.format(context_str=cur_text_chunk),
+                    )
+                ]
+            )
+            for cur_text_chunk in text_chunks
+        ]
