@@ -100,19 +100,14 @@ class Accumulate(BaseSynthesizer):
         )
 
         _call_llm = (
-            self._service_context.llm.achat
+            self._service_context.llm.acomplete
             if use_async
-            else self._service_context.llm.chat
+            else self._service_context.llm.complete
         )
 
         responses = [
             _call_llm(
-                [
-                    ChatMessage(
-                        role=MessageRole.USER,
-                        content=text_qa_template.format(context_str=cur_text_chunk),
-                    )
-                ]
+                text_qa_template.format(context_str=cur_text_chunk),
             )
             for cur_text_chunk in text_chunks
         ]
