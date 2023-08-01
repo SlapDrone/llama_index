@@ -57,6 +57,10 @@ def test_give_response(
         "This is another test.:"
         "This is a test v2."
     )
+    # print("response")
+    # print(str(response))
+    # print("expected")
+    # print(expected_answer)
     assert str(response) == expected_answer
 
 
