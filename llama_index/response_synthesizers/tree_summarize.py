@@ -67,13 +67,9 @@ class TreeSummarize(BaseSynthesizer):
             response: RESPONSE_TEXT_TYPE
             summary_prompt = summary_template.format(context_str=text_chunks[0])
             if self._streaming:
-                response = self._service_context.llm.astream_chat(
-                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
-                )
+                response = self._service_context.llm.astream_complete(summary_prompt)
             else:
-                response = await self._service_context.llm.achat(
-                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
-                )
+                response = await self._service_context.llm.acomplete(summary_prompt)
             # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
             response = convert_llm_output_to_legacy(response)
             return response
@@ -81,13 +77,8 @@ class TreeSummarize(BaseSynthesizer):
         else:
             # summarize each chunk
             tasks = [
-                self._service_context.llm.achat(
-                    [
-                        ChatMessage(
-                            role=MessageRole.USER,
-                            content=summary_template.format(context_str=text_chunk),
-                        )
-                    ]
+                self._service_context.llm.acomplete(
+                    summary_template.format(context_str=text_chunk)
                 )
                 for text_chunk in text_chunks
             ]
@@ -125,16 +116,9 @@ class TreeSummarize(BaseSynthesizer):
             response: RESPONSE_TEXT_TYPE
             summary_prompt = summary_template.format(context_str=text_chunks[0])
             if self._streaming:
-                response = self._service_context.llm.stream_chat(
-                    [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
-                )
+                response = self._service_context.llm.stream_complete(summary_prompt)
             else:
-                response = self._service_context.llm.complete(
-                    summary_template, context_str=text_chunks[0]
-                )
-                # response = self._service_context.llm.chat(
-                #     [ChatMessage(role=MessageRole.USER, content=summary_prompt)]
-                # )
+                response = self._service_context.llm.complete(summary_prompt)
             # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
             response = convert_llm_output_to_legacy(response)
             return response
@@ -143,13 +127,8 @@ class TreeSummarize(BaseSynthesizer):
             # summarize each chunk
             if self._use_async:
                 tasks = [
-                    self._service_context.llm.achat(
-                        [
-                            ChatMessage(
-                                role=MessageRole.USER,
-                                content=summary_template.format(context_str=text_chunk),
-                            )
-                        ]
+                    self._service_context.llm.acomplete(
+                        content=summary_template.format(context_str=text_chunk),
                     )
                     for text_chunk in text_chunks
                 ]
@@ -157,14 +136,6 @@ class TreeSummarize(BaseSynthesizer):
                 summaries: List[LLM_RESPONSES] = run_async_tasks(tasks)
             else:
                 summaries = [
-                    # self._service_context.llm.chat(
-                    #     [
-                    #         ChatMessage(
-                    #             role=MessageRole.USER,
-                    #             content=summary_template.format(context_str=text_chunk),
-                    #         )
-                    #     ]
-                    # )
                     self._service_context.llm.complete(
                         summary_template.format(context_str=text_chunk)
                     )
