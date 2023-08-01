@@ -37,13 +37,9 @@ class SimpleSummarize(BaseSynthesizer):
         response: RESPONSE_TEXT_TYPE
         prompt = text_qa_template.format(context_str=node_text)
         if not self._streaming:
-            response = await self._service_context.llm.achat(
-                [ChatMessage(role=MessageRole.USER, content=prompt)]
-            )
+            response = await self._service_context.llm.acomplete(prompt)
         else:
-            response = self._service_context.llm.astream_chat(
-                [ChatMessage(role=MessageRole.USER, content=prompt)]
-            )
+            response = self._service_context.llm.astream_complete(prompt)
         # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
         response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
@@ -70,13 +66,9 @@ class SimpleSummarize(BaseSynthesizer):
         prompt = text_qa_template.format(context_str=node_text)
 
         if not self._streaming:
-            response = self._service_context.llm.chat(
-                [ChatMessage(role=MessageRole.USER, content=prompt)]
-            )
+            response = self._service_context.llm.complete(prompt)
         else:
-            response = self._service_context.llm.stream_chat(
-                [ChatMessage(role=MessageRole.USER, content=prompt)]
-            )
+            response = self._service_context.llm.stream_complete(prompt)
         # NOTE: temporary adapter to minimise changes in replacing LLMPredictor -> LLM
         response = convert_llm_output_to_legacy(response)
         if isinstance(response, str):
