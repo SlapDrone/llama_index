@@ -27,6 +27,7 @@ class ChatResponseMode(str, Enum):
 
     WAIT = "wait"
     STREAM = "stream"
+    STREAM_STEPS = "stream_steps"
 
 
 @dataclass

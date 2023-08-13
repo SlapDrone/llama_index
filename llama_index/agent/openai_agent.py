@@ -199,6 +199,12 @@ class BaseOpenAIAgent(BaseAgent):
             return self._process_message(chat_response)
         elif mode == ChatResponseMode.STREAM:
             return self._get_stream_ai_response(**llm_chat_kwargs)
+        elif mode == ChatResponseMode.STREAM_STEPS:
+            # same as above, but instead of waiting before returning the streaming
+            # response, we have to return it immediately and make it provide
+            # an itertools.chain style interface to multiple generators which
+            # are spawned by the function name
+            pass
         else:
             raise NotImplementedError
 
